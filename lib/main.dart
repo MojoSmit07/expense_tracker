@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_expense_screen.dart';
+import 'screens/dashboard_screen.dart';
 import 'providers/expense_provider.dart';
 
 void main() {
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const HomeScreen(),
         '/add-expense': (context) => const AddExpenseScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
       },
     );
   }

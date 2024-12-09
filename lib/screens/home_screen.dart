@@ -95,6 +95,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          // Dashboard Navigation Button
+          Container(
+            margin: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.dashboard, color: Colors.blue.shade700),
+              onPressed: () {
+                Navigator.pushNamed(context, '/dashboard');
+              },
+            ),
+          ),
+          // Add Expense Button
           Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
