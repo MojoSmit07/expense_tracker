@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/expense.dart';
 import '../providers/expense_provider.dart';
 import 'expense_item.dart';
+import '../screens/add_expense_screen.dart';
 
 class ExpenseList extends StatelessWidget {
   final List<Expense> expenses;
@@ -35,35 +36,72 @@ class ExpenseList extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          direction: DismissDirection.endToStart,
+          secondaryBackground: Container(
+            color: Colors.blue,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 20),
+            child: const Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
+          ),
           confirmDismiss: (direction) async {
-            return await showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Delete Expense'),
-                content: const Text('Are you sure you want to delete this expense?'),
-                actions: [
-                  TextButton(
-                    child: const Text('No'),
-                    onPressed: () {
-                      Navigator.of(ctx).pop(false);
-                    },
+            if (direction == DismissDirection.endToStart) {
+              // Delete confirmation dialog
+              return await showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Delete Expense'),
+                  content: const Text(
+                      'Are you sure you want to delete this expense?'),
+                  actions: [
+                    TextButton(
+                      child: const Text('No'),
+                      onPressed: () {
+                        Navigator.of(ctx).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Yes'),
+                      onPressed: () {
+                        Navigator.of(ctx).pop(true);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            } else if (direction == DismissDirection.startToEnd) {
+              // Navigate to edit screen
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddExpenseScreen(
+                    existingExpense: expense,
                   ),
-                  TextButton(
-                    child: const Text('Yes'),
-                    onPressed: () {
-                      Navigator.of(ctx).pop(true);
-                    },
-                  ),
-                ],
-              ),
-            );
+                ),
+              );
+              return false; // Prevent dismissal
+            }
+            return null;
           },
           onDismissed: (direction) {
-            Provider.of<ExpenseProvider>(context, listen: false)
-                .removeExpense(expense);
+            if (direction == DismissDirection.endToStart) {
+              Provider.of<ExpenseProvider>(context, listen: false)
+                  .removeExpense(expense);
+            }
           },
-          child: ExpenseItem(expense: expense),
+          child: GestureDetector(
+            onTap: () {
+              // Allow editing by tapping the expense item
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddExpenseScreen(
+                    existingExpense: expense,
+                  ),
+                ),
+              );
+            },
+            child: ExpenseItem(expense: expense),
+          ),
         );
       },
     );

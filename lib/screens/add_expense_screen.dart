@@ -5,7 +5,9 @@ import '../models/expense.dart';
 import '../providers/expense_provider.dart';
 
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+  final Expense? existingExpense;
+
+  const AddExpenseScreen({super.key, this.existingExpense});
 
   @override
   _AddExpenseScreenState createState() => _AddExpenseScreenState();
@@ -26,10 +28,22 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     'Other'
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // If editing an existing expense, populate the fields
+    if (widget.existingExpense != null) {
+      _titleController.text = widget.existingExpense!.title;
+      _amountController.text = widget.existingExpense!.amount.toString();
+      _selectedDate = widget.existingExpense!.date;
+      _selectedCategory = widget.existingExpense!.category;
+    }
+  }
+
   void _presentDatePicker() {
     showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -54,18 +68,28 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void _submitExpense() {
     if (!_formKey.currentState!.validate()) return;
 
-    final newExpense = Expense(
+    final expense = Expense(
+      id: widget.existingExpense?.id, // Preserve existing ID when editing
       title: _titleController.text,
       amount: double.parse(_amountController.text),
       date: _selectedDate ?? DateTime.now(),
       category: _selectedCategory,
     );
 
-    Provider.of<ExpenseProvider>(context, listen: false)
-        .addExpense(newExpense)
-        .then((_) {
-      Navigator.of(context).pop();
-    });
+    final expenseProvider =
+        Provider.of<ExpenseProvider>(context, listen: false);
+
+    if (widget.existingExpense == null) {
+      // Adding new expense
+      expenseProvider.addExpense(expense).then((_) {
+        Navigator.of(context).pop();
+      });
+    } else {
+      // Updating existing expense
+      expenseProvider.updateExpense(expense).then((_) {
+        Navigator.of(context).pop();
+      });
+    }
   }
 
   @override
@@ -80,7 +104,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Add New Expense',
+          widget.existingExpense == null ? 'Add New Expense' : 'Edit Expense',
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
@@ -88,6 +112,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           ),
         ),
       ),
+      // Rest of the build method remains the same as in the previous implementation
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -96,7 +121,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Expense Title Input
+                // Input fields (remain the same as in previous implementation)
                 _buildInputContainer(
                   TextFormField(
                     controller: _titleController,
@@ -116,7 +141,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 SizedBox(height: 16),
 
-                // Amount Input
                 _buildInputContainer(
                   TextFormField(
                     controller: _amountController,
@@ -145,7 +169,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 SizedBox(height: 16),
 
-                // Date Picker
+                // Date Picker (remain the same)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
@@ -184,7 +208,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                 SizedBox(height: 16),
 
-                // Category Dropdown
+                // Category Dropdown (remain the same)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
@@ -231,7 +255,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                     elevation: 5,
                   ),
                   child: Text(
-                    'Add Expense',
+                    widget.existingExpense == null
+                        ? 'Add Expense'
+                        : 'Update Expense',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -246,7 +272,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
-  // Helper method to create consistent input containers
+  // Helper method remains the same
   Widget _buildInputContainer(Widget child) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
